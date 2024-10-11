@@ -1,0 +1,23 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/pentagon/circut_ws/install/v4l2_camera/include/**",
+        "/home/pentagon/circut_ws/install/req_res_str_service/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/pentagon/circut_ws/src/shesnar/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

@@ -1,0 +1,22 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/pentagon/circut_ws/build/py_srv",
+        "/home/pentagon/circut_ws/install/py_srv/lib/python3.10/site-packages",
+        "/home/pentagon/circut_ws/build/cv_basics",
+        "/home/pentagon/circut_ws/install/cv_basics/lib/python3.10/site-packages",
+        "/home/pentagon/circut_ws/install/req_res_str_service/local/lib/python3.10/dist-packages",
+        "/home/pentagon/circut_ws/install/camera_lan_stream/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/pentagon/circut_ws/build/py_srv",
+        "/home/pentagon/circut_ws/install/py_srv/lib/python3.10/site-packages",
+        "/home/pentagon/circut_ws/build/cv_basics",
+        "/home/pentagon/circut_ws/install/cv_basics/lib/python3.10/site-packages",
+        "/home/pentagon/circut_ws/install/req_res_str_service/local/lib/python3.10/dist-packages",
+        "/home/pentagon/circut_ws/install/camera_lan_stream/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}
