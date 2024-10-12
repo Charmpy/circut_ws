@@ -15,27 +15,23 @@ from .robot_navigator import BasicNavigator # Helper module
 from .util import Servo, Gripper, ServoControl
 from std_msgs.msg import Int16
 from std_msgs.msg import Int64
-from rtk_camera_interfaces.srv import CameraCom
 from geometry_msgs.msg import Twist 
+from req_res_str_service.srv import ReqRes
 
 
-class DeltaNode(Node):
+class CameraReq(Node):
     def __init__(self):
-        super().__init__('delta')
-        self.subscription1 = self.create_subscription(
-            Int16, 'camera/marker_error',   
-            self.listener_callback,
-            10)
-      
-        self.subscription1
-        self.error = 0
+        super().__init__('camera_req')
+        self.cli = self.create_client(ReqRes, 'cam_service')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+        self.req = ReqRes.Request()
 
-    def listener_callback(self, msg):
-        self.error = msg.data
-        self.get_logger().info('ERROR ' + str(self.error))
-    
-    def get_error(self):
-        return self.error
+    def send_request(self, a):
+        self.req.req = a
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
 
 
 
@@ -57,11 +53,6 @@ class RobotUtil(Node):
         self.FLAG2 = False
         
         self.publisher_twist = self.create_publisher(Twist, '/diff_cont/cmd_vel_unstamped', 10)
-
-        self.cli = self.create_client(CameraCom, 'camera_command')
-        while not self.cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('service not available, waiting again...')
-        self.req = CameraCom.Request()
 
     
 
@@ -168,180 +159,119 @@ class RobotUtil(Node):
         pass
 
 
+class RobotEsteminator:
+    def __init__(self, direction):
+        self.x = 0
+        self.y = 2
+        self.rot_index = direction
+    
+    def check(self):
+        posabilities = []
+        if self.rot_index == 0:
+            if self.y != 2:
+                posabilities.append('f')
+            if self.x != 0:
+                posabilities.append("r")
+            if self.x != 2:
+                posabilities.append("l")
+        elif self.rot_index == 1:
+            if self.x != 0:
+                posabilities.append('f')
+            if self.y != 0:
+                posabilities.append("r")
+            if self.y != 2:
+                posabilities.append("l")
+        elif self.rot_index == 2:
+            if self.y != 0:
+                posabilities.append('f')
+            if self.x != 2:
+                posabilities.append("r")
+            if self.x != 0:
+                posabilities.append("l")
+        elif self.rot_index == 3:
+            if self.x != 2:
+                posabilities.append('f')
+            if self.y != 2:
+                posabilities.append("r")
+            if self.y != 0:
+                posabilities.append("l")
+        return posabilities
+    
+
+    def move(self, dir):
+        if dir in self.check():
+            if self.rot_index == 0:
+                self.y += 1
+            elif self.rot_index == 1:
+                self.x -= 1
+            elif self.rot_index == 2:
+                self.y -= 1
+            elif self.rot_index == 3:
+                self.x += 1
+
+            if dir == "r":
+                self.rot_index += 1
+            elif dir == 'l':
+                self.rot_index -= 1
+            return True
+        else:
+            return False
+
+    def get_coords(self):
+            return (self.y * 0.8, self.x * 0.8, (self.rot_index * 1,57) - 3.14)
+
+    def get_str(self):
+        a = [
+            ["*", "*", "*"],
+            ["*", "*", "*"],
+            ["*", "*", "*"]
+        ]
+        d = {0: "D", 1:"L", 2:'F', 3:"R"}
+        a[self.y][self.x] = d[self.rot_index]
+        return ["".join(a[0]), "".join(a[1]), "".join(a[2])]
+
+
 def main(args=None):
     rclpy.init(args=args)
 
 
-    RU = RobotUtil()
-    RU.start_request()
-
-    # time.sleep(2)
-    # RU.begin_targeting()
-
-    
-    # time.sleep(2)
-    # RU.FLAG = True
-
-    # while RU.FLAG == True:
-    #     rclpy.spin_once(RU)
- 
-
-    # time.sleep(2 )
-
-    back = [0.0, 0.0,  0.71, 0.71]
-    right = [0.0, 0.0, -0.71, 0.71]
-    forw = [0.0, 0.0, 3.14, 0.0]
-    left = [0.0, 0.0, 1.0, 1.0]
-
+    camera_req = CameraReq()
 
     navigator = BasicNavigator()
 
-    # # navi = Navi()
-    # # navi.publish(0.0, 0.0, 0.0)
-    # navigator.waitUntilNav2Active()
+    navi = Navi()
+    navi.publish(0.0, 0.0, 0.0)
+    navigator.waitUntilNav2Active()
 
-    time_ = navigator.get_clock().now().to_msg()
+    RE = RobotEsteminator(2)
 
-
-
-
-
-
-
-
-        # ### first arrow
-    # goal_pose = Navi.set_goal_pose(0.0, 0.0, 0.0, time_)
-    # navigator.goToPose(goal_pose)
-    # while not navigator.isNavComplete():
-    #     pass
-    # print("0")
-    # time.sleep(2)
-    # goal_pose = Navi.set_goal_pose(0.0, 0.0, 3.14, time_)
-    # navigator.goToPose(goal_pose)
-    # while not navigator.isNavComplete():
-    #     pass
-    # print("0")
-    # time.sleep(2)
-
-    #     # ### first arrow
-    # goal_pose = Navi.set_goal_pose(0.0, 0.0, -3.14/2, time_) ##right
-    # navigator.goToPose(goal_pose)
-    # while not navigator.isNavComplete():
-    #     pass
-    # print("0")
-    # time.sleep(2)
-    # goal_pose = Navi.set_goal_pose(0.0, 0.0, 3.14/2, time_)
-    # navigator.goToPose(goal_pose)
-    # while not navigator.isNavComplete():
-    #     pass
-    # print("0")
-    # time.sleep(2)
-
-
-
-
-
-    ### first arrow
-    goal_pose = Navi.set_goal_pose(-0.04, 0.58, -3.14/2, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
-
-
-    ###  arrow2
-
-    goal_pose = Navi.set_goal_pose(0.56, 0.79, 0, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
-
-    ###  arrow3
-
-    goal_pose = Navi.set_goal_pose(0.77, 0.34, -3.14/2, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
-
-    ##  arrow4
-
-    goal_pose = Navi.set_goal_pose(1.27, 0.15, 0.0, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
-
-
-     ##  arrow5
-
-    goal_pose = Navi.set_goal_pose(1.6, 1.28, math.pi/2, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
-
-     ##  finish
-    goal_pose = Navi.set_goal_pose(0.4, 2.28, 0.0, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
-
-    goal_pose = Navi.set_goal_pose(1.5, 2.28, 0.0, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
-
-    RU.begin_targeting()
-    time.sleep(2)
-    RU.FLAG = True
-    while RU.FLAG == True:
-        rclpy.spin_once(RU)
-    time.sleep(2)
-
-    time.sleep(2)
-    RU.FLAG2 = True
-    while RU.FLAG2 == True:
-        rclpy.spin_once(RU)
-    time.sleep(2)
-
-    RU.send_msg_back()
-    time.sleep(2)
-    RU.send_msg_stop()
-
-
-
-    goal_pose = Navi.set_goal_pose(1.27, 0.15, 0.0, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
+    ##### main circlue
+    _, _, old_rot = RE.get_coords()
+    response = camera_req.send_request("p")
     
-    goal_pose = Navi.set_goal_pose(0.77, 0.34, -math.pi/2, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
+    while response != "a":
 
-       ### first arrow
-    goal_pose = Navi.set_goal_pose(0.0, 0.0, math.pi, time_)
-    navigator.goToPose(goal_pose)
-    while not navigator.isNavComplete():
-        pass
-    print("0")
-    time.sleep(0.5)
+        time_ = navigator.get_clock().now().to_msg()
+        posible = RE.move(response)
+        if posible:
+            print(response)
+            x, y, rot = RE.get_coords()
+            ### first arrow
+            goal_pose = Navi.set_goal_pose(x, y, old_rot, time_)
+            navigator.goToPose(goal_pose)
+            while not navigator.isNavComplete():
+                pass
+            goal_pose = Navi.set_goal_pose(x, y, rot, time_)
+            navigator.goToPose(goal_pose)
+            while not navigator.isNavComplete():
+                pass
+
+            print("\n".join(RE.get_str()))
+        
+        response = camera_req.send_request("p")
+    
+    print("DONE")
+
 
     rclpy.shutdown()
 

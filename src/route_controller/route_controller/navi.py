@@ -39,10 +39,10 @@ class Navi(Node):
         initpose.pose.pose.position.y = y
         quaternion = quaternion_from_euler(0, 0, w)
 
-        initpose.pose.pose.orientation.w = quaternion[0]
-        initpose.pose.pose.orientation.x = quaternion[1]
-        initpose.pose.pose.orientation.y = quaternion[2]
-        initpose.pose.pose.orientation.z = quaternion[3]
+        initpose.pose.pose.orientation.x = quaternion[0]
+        initpose.pose.pose.orientation.y = quaternion[1]
+        initpose.pose.pose.orientation.z = quaternion[2]
+        initpose.pose.pose.orientation.w = quaternion[3]
         self.publisher_.publish(initpose)
 
 
@@ -57,14 +57,14 @@ class Navi(Node):
         initpose.pose.pose.position.y = y
         quaternion = quaternion_from_euler(0, 0, w)
 
-        initpose.pose.pose.orientation.w = quaternion[0]
-        initpose.pose.pose.orientation.x = quaternion[1]
-        initpose.pose.pose.orientation.y = quaternion[2]
-        initpose.pose.pose.orientation.z = quaternion[3]
+        initpose.pose.pose.orientation.x = quaternion[0]
+        initpose.pose.pose.orientation.y = quaternion[1]
+        initpose.pose.pose.orientation.z = quaternion[2]
+        initpose.pose.pose.orientation.w = quaternion[3]
         self.publisher_.publish(initpose)
 
 
-        self.get_logger().info('Publishing: 123')
+        self.get_logger().info('initial pose configured')
     
 
 
